@@ -20,17 +20,21 @@ class EventDetailViewModel : ViewModel() {
     private val _error = MutableLiveData<String?>(null)
     val error: LiveData<String?> = _error
 
-    private val _ticketCount = MutableLiveData(1)
+    // Cambiado a 0 como valor inicial
+    private val _ticketCount = MutableLiveData<Int>(0)
     val ticketCount: LiveData<Int> = _ticketCount
 
-    private val _totalPrice = MutableLiveData(0.0)
+    private val _totalPrice = MutableLiveData<Double>(0.0)
     val totalPrice: LiveData<Double> = _totalPrice
 
-    private val _purchaseSuccess = MutableLiveData(false)
+    private val _purchaseSuccess = MutableLiveData<Boolean>(false)
     val purchaseSuccess: LiveData<Boolean> = _purchaseSuccess
 
     private val _purchaseMessage = MutableLiveData<String?>(null)
     val purchaseMessage: LiveData<String?> = _purchaseMessage
+
+    private var _currentTicketCount = 0
+
 
     fun loadEvent(eventId: String) {
         viewModelScope.launch {
@@ -38,20 +42,26 @@ class EventDetailViewModel : ViewModel() {
             _error.value = null
 
             try {
-                // Simulamos un pequeño retraso como si fuera una llamada de red
-                kotlinx.coroutines.delay(500)
+                println("Intentando cargar evento con ID: $eventId")
 
-                // Obtenemos el evento específico por ID
                 val eventList = repository.getEvents()
+                println("Eventos recuperados: ${eventList.size}")
+
                 val selectedEvent = eventList.find { it.id == eventId }
 
                 if (selectedEvent != null) {
+                    println("Evento encontrado: ${selectedEvent.titulo}")
                     _event.value = selectedEvent
-                    updateTotalPrice()
+                    _currentTicketCount = 0
+                    _ticketCount.value = 0
+                    _totalPrice.value = 0.0
+                    println("Contador reiniciado a 0")
                 } else {
+                    println("No se encontró el evento con ID: $eventId")
                     _error.value = "No se encontró el evento"
                 }
             } catch (e: Exception) {
+                println("Error al cargar evento: ${e.message}")
                 _error.value = "Error al cargar el evento: ${e.message}"
             } finally {
                 _isLoading.value = false
@@ -61,41 +71,66 @@ class EventDetailViewModel : ViewModel() {
 
     fun incrementTicketCount() {
         val currentEvent = _event.value
-        val currentCount = _ticketCount.value ?: 1
 
-        if (currentEvent != null && currentCount < currentEvent.lugaresDisponibles) {
-            _ticketCount.value = currentCount + 1
-            updateTotalPrice()
+        println("Intentando incrementar desde: $_currentTicketCount")
+
+        if (currentEvent != null && _currentTicketCount < currentEvent.lugaresDisponibles) {
+            _currentTicketCount++
+            _ticketCount.postValue(_currentTicketCount) // Usar postValue para asegurar actualización
+            println("Incrementado a: $_currentTicketCount")
+
+            // Actualizar precio directamente
+            val newPrice = currentEvent.precio * _currentTicketCount
+            _totalPrice.postValue(newPrice)
+            println("Precio actualizado a: $newPrice")
         }
     }
 
     fun decrementTicketCount() {
-        val currentCount = _ticketCount.value ?: 1
+        println("Intentando decrementar desde: $_currentTicketCount")
 
-        if (currentCount > 1) {
-            _ticketCount.value = currentCount - 1
-            updateTotalPrice()
+        if (_currentTicketCount > 0) {
+            _currentTicketCount--
+            _ticketCount.postValue(_currentTicketCount) // Usar postValue para asegurar actualización
+            println("Decrementado a: $_currentTicketCount")
+
+            // Actualizar precio directamente
+            val currentEvent = _event.value
+            if (currentEvent != null) {
+                val newPrice = currentEvent.precio * _currentTicketCount
+                _totalPrice.postValue(newPrice)
+                println("Precio actualizado a: $newPrice")
+            }
         }
     }
 
     private fun updateTotalPrice() {
         val currentEvent = _event.value
-        val currentCount = _ticketCount.value ?: 1
+        val currentCount = _ticketCount.value ?: 0
 
         if (currentEvent != null) {
-            _totalPrice.value = currentEvent.precio * currentCount
+            val newPrice = currentEvent.precio * currentCount
+            println("Actualizando precio: $currentCount tickets * ${currentEvent.precio} = $newPrice")
+            _totalPrice.value = newPrice
         }
     }
 
     fun purchaseTickets() {
         viewModelScope.launch {
+            val currentCount = _ticketCount.value ?: 0
+
+            // Verificar que hay tickets seleccionados
+            if (currentCount <= 0) {
+                _error.value = "Debes seleccionar al menos un boleto"
+                return@launch
+            }
+
             _isLoading.value = true
             _error.value = null
             _purchaseMessage.value = null
 
             try {
                 val currentEvent = _event.value
-                val currentCount = _ticketCount.value ?: 1
 
                 if (currentEvent == null) {
                     _error.value = "No se encontró información del evento"

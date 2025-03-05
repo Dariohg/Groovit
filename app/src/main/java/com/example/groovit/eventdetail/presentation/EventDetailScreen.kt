@@ -7,6 +7,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -79,7 +80,8 @@ fun EventDetailScreen(
     val event by eventDetailViewModel.event.observeAsState()
     val isLoading by eventDetailViewModel.isLoading.observeAsState(false)
     val error by eventDetailViewModel.error.observeAsState(null)
-    val ticketCount by eventDetailViewModel.ticketCount.observeAsState(1)
+    // Cambiado de 1 a 0 para que inicie en cero
+    val ticketCount by eventDetailViewModel.ticketCount.observeAsState(0)
     val totalPrice by eventDetailViewModel.totalPrice.observeAsState(0.0)
     val purchaseSuccess by eventDetailViewModel.purchaseSuccess.observeAsState(false)
     val purchaseMessage by eventDetailViewModel.purchaseMessage.observeAsState(null)
@@ -88,6 +90,10 @@ fun EventDetailScreen(
     LaunchedEffect(eventId) {
         eventDetailViewModel.loadEvent(eventId)
     }
+    LaunchedEffect(ticketCount, totalPrice) {
+        println("UI actualizada - Tickets: $ticketCount, Precio: $totalPrice")
+    }
+
 
     // Diálogo de compra exitosa
     if (purchaseSuccess) {
@@ -173,6 +179,9 @@ fun EventDetailScreen(
                         .fillMaxSize()
                         .verticalScroll(rememberScrollState())
                 ) {
+                    // El resto del contenido se mantiene igual
+                    // ...
+
                     // Imagen del evento
                     AsyncImage(
                         model = event?.imagenUrl,
@@ -452,12 +461,13 @@ fun EventDetailScreen(
                                     modifier = Modifier
                                         .fillMaxWidth()
                                         .height(56.dp),
-                                    enabled = !isLoading && ticketCount > 0 && event?.lugaresDisponibles ?: 0 >= ticketCount,
+                                    // Modificado para deshabilitar cuando ticketCount es 0
+                                    enabled = !isLoading && ticketCount > 0 && (event?.lugaresDisponibles ?: 0) >= ticketCount,
                                     colors = ButtonDefaults.buttonColors(
                                         containerColor = Color.Transparent,
                                         disabledContainerColor = Color.Gray.copy(alpha = 0.5f)
                                     ),
-                                    contentPadding = androidx.compose.foundation.layout.PaddingValues(0.dp)
+                                    contentPadding = PaddingValues(0.dp)
                                 ) {
                                     Box(
                                         modifier = Modifier
