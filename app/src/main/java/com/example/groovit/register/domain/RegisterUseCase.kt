@@ -15,7 +15,8 @@ class RegisterUseCase {
         email: String,
         password: String,
         confirmPassword: String,
-        deviceToken: String
+        deviceToken: String,
+        generosMusicales: List<String> // Añadido este parámetro
     ): Result<RegisterResponse> {
         // Validaciones
         if (nombre.isBlank()) {
@@ -48,7 +49,8 @@ class RegisterUseCase {
             username = username,
             email = email,
             password = password,
-            deviceToken = deviceToken
+            deviceToken = deviceToken,
+            generosMusicales = generosMusicales // Incluido en la request
         )
 
         return repository.register(request)

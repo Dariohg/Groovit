@@ -6,5 +6,6 @@ data class RegisterRequest(
     val username: String,
     val email: String,
     val password: String,
-    val deviceToken: String
+    val deviceToken: String,
+    val generosMusicales: List<String>
 )

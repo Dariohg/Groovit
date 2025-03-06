@@ -3,15 +3,20 @@ package com.example.groovit.register.presentation
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
@@ -31,9 +36,11 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
@@ -55,12 +62,13 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.groovit.register.data.model.GeneroMusical
 import com.example.groovit.ui.theme.BackgroundDark
 import com.example.groovit.ui.theme.NeonPurple
 import com.example.groovit.ui.theme.NeonPurpleLight
 import com.example.groovit.ui.theme.TextWhite
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 fun RegisterScreen(
     registerViewModel: RegisterViewModel,
@@ -75,6 +83,8 @@ fun RegisterScreen(
     val isLoading by registerViewModel.isLoading.observeAsState(false)
     val errorMessage by registerViewModel.errorMessage.observeAsState(null)
     val isRegistered by registerViewModel.isRegistered.observeAsState(false)
+    val generos by registerViewModel.generos.observeAsState(emptyList())
+    val isLoadingGeneros by registerViewModel.isLoadingGeneros.observeAsState(false)
 
     var passwordVisible by remember { mutableStateOf(false) }
     var confirmPasswordVisible by remember { mutableStateOf(false) }
@@ -116,8 +126,7 @@ fun RegisterScreen(
                     .fillMaxSize()
                     .padding(24.dp)
                     .verticalScroll(rememberScrollState()),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Top
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 // Título
                 Text(
@@ -343,7 +352,62 @@ fun RegisterScreen(
                     )
                 )
 
-                // Register Button with gradient
+                // Géneros Musicales
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 24.dp)
+                ) {
+                    Text(
+                        text = "Géneros Musicales Favoritos",
+                        color = TextWhite,
+                        style = MaterialTheme.typography.titleMedium,
+                        modifier = Modifier.padding(bottom = 8.dp)
+                    )
+
+                    if (isLoadingGeneros) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(100.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            CircularProgressIndicator(
+                                color = NeonPurple,
+                                modifier = Modifier.size(32.dp)
+                            )
+                        }
+                    } else {
+                        // Mostrar chips de géneros en un flujo
+                        FlowRow(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .heightIn(min = 60.dp, max = 150.dp),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            generos.forEach { genero ->
+                                GeneroChip(
+                                    genero = genero,
+                                    onClick = { registerViewModel.toggleGeneroSelection(genero) }
+                                )
+                            }
+                        }
+
+                        // Mostrar géneros seleccionados
+                        val selectedGeneros = generos.filter { it.isSelected }
+                        if (selectedGeneros.isNotEmpty()) {
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Text(
+                                text = "Seleccionados: ${selectedGeneros.joinToString(", ") { it.genero }}",
+                                color = Color.Gray,
+                                style = MaterialTheme.typography.bodySmall
+                            )
+                        }
+                    }
+                }
+
+                // Register Button
                 Button(
                     onClick = { registerViewModel.onRegisterClicked() },
                     modifier = Modifier
@@ -397,6 +461,32 @@ fun RegisterScreen(
 
                 Spacer(modifier = Modifier.height(16.dp))
             }
+        }
+    }
+}
+
+@Composable
+fun GeneroChip(
+    genero: GeneroMusical,
+    onClick: () -> Unit
+) {
+    Surface(
+        modifier = Modifier
+            .height(32.dp)
+            .clickable(onClick = onClick),
+        shape = RoundedCornerShape(16.dp),
+        color = if (genero.isSelected) NeonPurple else Color(0xFF2A2A2A),
+        border = BorderStroke(1.dp, if (genero.isSelected) NeonPurpleLight else Color.Gray)
+    ) {
+        Box(
+            contentAlignment = Alignment.Center,
+            modifier = Modifier.padding(horizontal = 12.dp)
+        ) {
+            Text(
+                text = genero.genero,
+                fontSize = 12.sp,
+                color = if (genero.isSelected) TextWhite else Color.LightGray
+            )
         }
     }
 }

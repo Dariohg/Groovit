@@ -51,7 +51,7 @@ class EventDetailViewModel : ViewModel() {
 
                 if (selectedEvent != null) {
                     println("Evento encontrado: ${selectedEvent.titulo}")
-                    _event.value = selectedEvent
+                    _event.value = selectedEvent!!
                     _currentTicketCount = 0
                     _ticketCount.value = 0
                     _totalPrice.value = 0.0

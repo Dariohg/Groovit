@@ -4,11 +4,15 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.groovit.register.data.model.GeneroMusical
+import com.example.groovit.register.data.model.RegisterRequest
+import com.example.groovit.register.data.repository.RegisterRepository
 import com.example.groovit.register.domain.RegisterUseCase
 import kotlinx.coroutines.launch
 
 class RegisterViewModel : ViewModel() {
-    private val registerUseCase = RegisterUseCase()
+    private val repository = RegisterRepository()
+    private val registerUseCase = RegisterUseCase() // Añadir esta línea
 
     private val _nombre = MutableLiveData<String>("")
     val nombre: LiveData<String> = _nombre
@@ -37,6 +41,54 @@ class RegisterViewModel : ViewModel() {
     private val _isRegistered = MutableLiveData<Boolean>(false)
     val isRegistered: LiveData<Boolean> = _isRegistered
 
+    // Géneros musicales
+    private val _generos = MutableLiveData<List<GeneroMusical>>(emptyList())
+    val generos: LiveData<List<GeneroMusical>> = _generos
+
+    private val _isLoadingGeneros = MutableLiveData<Boolean>(false)
+    val isLoadingGeneros: LiveData<Boolean> = _isLoadingGeneros
+
+    init {
+        // Cargar géneros musicales al inicializar
+        loadGeneros()
+    }
+
+    private fun loadGeneros() {
+        viewModelScope.launch {
+            _isLoadingGeneros.value = true
+
+            try {
+                val generosResult = repository.getGeneros()
+
+                if (generosResult.isSuccess) {
+                    _generos.value = generosResult.getOrNull() ?: emptyList()
+                } else {
+                    // Si falla, usar una lista de respaldo
+                    _generos.value = listOf(
+                        GeneroMusical("1", "Rock"),
+                        GeneroMusical("2", "Pop"),
+                        GeneroMusical("3", "Hip Hop"),
+                        GeneroMusical("4", "Electrónica"),
+                        GeneroMusical("5", "Reggaeton"),
+                        GeneroMusical("6", "Jazz"),
+                        GeneroMusical("7", "Clásica")
+                    )
+                }
+            } catch (e: Exception) {
+                // Si ocurre una excepción no manejada, usar lista de respaldo
+                _generos.value = listOf(
+                    GeneroMusical("1", "Rock"),
+                    GeneroMusical("2", "Pop"),
+                    GeneroMusical("3", "Hip Hop"),
+                    GeneroMusical("4", "Electrónica"),
+                    GeneroMusical("5", "Reggaeton")
+                )
+            } finally {
+                _isLoadingGeneros.value = false
+            }
+        }
+    }
+
     fun onNombreChanged(value: String) {
         _nombre.value = value
     }
@@ -61,6 +113,22 @@ class RegisterViewModel : ViewModel() {
         _confirmPassword.value = value
     }
 
+    // Función para alternar la selección de un género
+    fun toggleGeneroSelection(genero: GeneroMusical) {
+        val currentGeneros = _generos.value?.toMutableList() ?: mutableListOf()
+        val index = currentGeneros.indexOfFirst { it.id == genero.id }
+
+        if (index != -1) {
+            currentGeneros[index] = currentGeneros[index].copy(isSelected = !currentGeneros[index].isSelected)
+            _generos.value = currentGeneros
+        }
+    }
+
+    // Obtener géneros seleccionados
+    private fun getSelectedGeneros(): List<String> {
+        return _generos.value?.filter { it.isSelected }?.map { it.id } ?: emptyList()
+    }
+
     fun onRegisterClicked() {
         viewModelScope.launch {
             _isLoading.value = true
@@ -69,26 +137,31 @@ class RegisterViewModel : ViewModel() {
             // En un caso real, esta sería la forma de obtener el token del dispositivo para notificaciones push
             val deviceToken = getDeviceToken()
 
-            val result = registerUseCase(
-                nombre = _nombre.value ?: "",
-                apellido = _apellido.value ?: "",
-                username = _username.value ?: "",
-                email = _email.value ?: "",
-                password = _password.value ?: "",
-                confirmPassword = _confirmPassword.value ?: "",
-                deviceToken = deviceToken
-            )
+            // Obtener los géneros seleccionados
+            val generosIds = getSelectedGeneros()
 
-            _isLoading.value = false
+            try {
+                val result = registerUseCase(
+                    nombre = _nombre.value ?: "",
+                    apellido = _apellido.value ?: "",
+                    username = _username.value ?: "",
+                    email = _email.value ?: "",
+                    password = _password.value ?: "",
+                    confirmPassword = _confirmPassword.value ?: "",
+                    deviceToken = deviceToken,
+                    generosMusicales = generosIds
+                )
 
-            result.fold(
-                onSuccess = {
+                if (result.isSuccess) {
                     _isRegistered.value = true
-                },
-                onFailure = {
-                    _errorMessage.value = it.message
+                } else {
+                    _errorMessage.value = result.exceptionOrNull()?.message ?: "Error desconocido"
                 }
-            )
+            } catch (e: Exception) {
+                _errorMessage.value = e.message ?: "Error desconocido"
+            } finally {
+                _isLoading.value = false
+            }
         }
     }
 
