@@ -6,15 +6,15 @@ import com.example.groovit.login.data.repository.LoginRepository
 class LoginUseCase {
     private val repository = LoginRepository()
 
-    suspend operator fun invoke(username: String, password: String): Result<LoginResponse> {
+    suspend operator fun invoke(username: String, contraseña: String): Result<LoginResponse> {
         if (username.isBlank()) {
             return Result.failure(Exception("El nombre de usuario no puede estar vacío"))
         }
 
-        if (password.length < 6) {
+        if (contraseña.length < 6) {
             return Result.failure(Exception("La contraseña debe tener al menos 6 caracteres"))
         }
 
-        return repository.login(username, password)
+        return repository.login(username, contraseña)
     }
 }

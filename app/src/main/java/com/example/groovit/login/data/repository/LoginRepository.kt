@@ -7,9 +7,9 @@ import com.example.groovit.login.data.model.LoginResponse
 class LoginRepository {
     private val loginService = RetrofitHelper.loginService
 
-    suspend fun login(username: String, password: String): Result<LoginResponse> {
+    suspend fun login(username: String, contraseña: String): Result<LoginResponse> {
         return try {
-            val request = LoginRequest(username, password)
+            val request = LoginRequest(username, contraseña)
             val response = loginService.login(request)
 
             if (response.isSuccessful) {

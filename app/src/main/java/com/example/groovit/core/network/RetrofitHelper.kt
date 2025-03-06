@@ -7,7 +7,7 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
 object RetrofitHelper {
-    private const val BASE_URL = "https://api.groovit.com/"
+    private const val BASE_URL = "http://3.224.14.28:3000/"
 
     private val retrofit: Retrofit by lazy {
         Retrofit.Builder()

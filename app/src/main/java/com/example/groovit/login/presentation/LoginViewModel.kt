@@ -1,4 +1,4 @@
-/*package com.example.groovit.login.presentation
+package com.example.groovit.login.presentation
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -13,8 +13,8 @@ class LoginViewModel : ViewModel() {
     private val _username = MutableLiveData<String>("")
     val username: LiveData<String> = _username
 
-    private val _password = MutableLiveData<String>("")
-    val password: LiveData<String> = _password
+    private val _contraseña = MutableLiveData<String>("")
+    val contraseña: LiveData<String> = _contraseña
 
     private val _isLoading = MutableLiveData<Boolean>(false)
     val isLoading: LiveData<Boolean> = _isLoading
@@ -30,7 +30,7 @@ class LoginViewModel : ViewModel() {
     }
 
     fun onPasswordChanged(password: String) {
-        _password.value = password
+        _contraseña.value = password
     }
 
     fun onLoginClicked() {
@@ -40,7 +40,7 @@ class LoginViewModel : ViewModel() {
 
             val result = loginUseCase(
                 username = _username.value ?: "",
-                password = _password.value ?: ""
+                contraseña = _contraseña.value ?: ""
             )
 
             _isLoading.value = false
@@ -60,7 +60,10 @@ class LoginViewModel : ViewModel() {
     fun clearError() {
         _errorMessage.value = null
     }
-}*/
+}
+
+/*
+
 package com.example.groovit.login.presentation
 
 import androidx.lifecycle.LiveData
@@ -73,8 +76,8 @@ class LoginViewModel : ViewModel() {
     private val _username = MutableLiveData<String>("")
     val username: LiveData<String> = _username
 
-    private val _password = MutableLiveData<String>("")
-    val password: LiveData<String> = _password
+    private val _contraseña = MutableLiveData<String>("")
+    val contraseña: LiveData<String> = _contraseña
 
     private val _isLoading = MutableLiveData<Boolean>(false)
     val isLoading: LiveData<Boolean> = _isLoading
@@ -90,7 +93,7 @@ class LoginViewModel : ViewModel() {
     }
 
     fun onPasswordChanged(password: String) {
-        _password.value = password
+        _contraseña.value = password
     }
 
     fun onLoginClicked() {
@@ -103,7 +106,7 @@ class LoginViewModel : ViewModel() {
 
             // Credenciales de prueba o login simulado
             // Puedes usar cualquier credencial o simplemente permitir cualquier combinación
-            if (_username.value?.isNotEmpty() == true && _password.value?.isNotEmpty() == true) {
+            if (_username.value?.isNotEmpty() == true && _contraseña.value?.isNotEmpty() == true) {
                 // Login exitoso simulado
                 _isLoggedIn.value = true
             } else {
@@ -118,4 +121,4 @@ class LoginViewModel : ViewModel() {
     fun clearError() {
         _errorMessage.value = null
     }
-}
+}*/

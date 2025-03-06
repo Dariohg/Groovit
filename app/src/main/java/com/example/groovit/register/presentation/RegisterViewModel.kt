@@ -1,5 +1,6 @@
 package com.example.groovit.register.presentation
 
+import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -8,6 +9,7 @@ import com.example.groovit.register.data.model.GeneroMusical
 import com.example.groovit.register.data.model.RegisterRequest
 import com.example.groovit.register.data.repository.RegisterRepository
 import com.example.groovit.register.domain.RegisterUseCase
+import com.google.firebase.messaging.FirebaseMessaging
 import kotlinx.coroutines.launch
 
 class RegisterViewModel : ViewModel() {
@@ -26,11 +28,11 @@ class RegisterViewModel : ViewModel() {
     private val _email = MutableLiveData<String>("")
     val email: LiveData<String> = _email
 
-    private val _password = MutableLiveData<String>("")
-    val password: LiveData<String> = _password
+    private val _contraseña = MutableLiveData<String>("")
+    val contraseña: LiveData<String> = _contraseña
 
-    private val _confirmPassword = MutableLiveData<String>("")
-    val confirmPassword: LiveData<String> = _confirmPassword
+    private val _confirmcontraseña = MutableLiveData<String>("")
+    val confirmcontraseña: LiveData<String> = _confirmcontraseña
 
     private val _isLoading = MutableLiveData<Boolean>(false)
     val isLoading: LiveData<Boolean> = _isLoading
@@ -40,6 +42,9 @@ class RegisterViewModel : ViewModel() {
 
     private val _isRegistered = MutableLiveData<Boolean>(false)
     val isRegistered: LiveData<Boolean> = _isRegistered
+
+    private val _token_dispositivo = MutableLiveData<String>()
+    val token_dispositivo: LiveData<String> = _token_dispositivo
 
     // Géneros musicales
     private val _generos = MutableLiveData<List<GeneroMusical>>(emptyList())
@@ -51,6 +56,7 @@ class RegisterViewModel : ViewModel() {
     init {
         // Cargar géneros musicales al inicializar
         loadGeneros()
+        getDeviceToken()
     }
 
     private fun loadGeneros() {
@@ -106,11 +112,11 @@ class RegisterViewModel : ViewModel() {
     }
 
     fun onPasswordChanged(value: String) {
-        _password.value = value
+        _contraseña.value = value
     }
 
     fun onConfirmPasswordChanged(value: String) {
-        _confirmPassword.value = value
+        _confirmcontraseña.value = value
     }
 
     // Función para alternar la selección de un género
@@ -135,7 +141,7 @@ class RegisterViewModel : ViewModel() {
             _errorMessage.value = null
 
             // En un caso real, esta sería la forma de obtener el token del dispositivo para notificaciones push
-            val deviceToken = getDeviceToken()
+            val token_dispositivo = _token_dispositivo.value ?: ""
 
             // Obtener los géneros seleccionados
             val generosIds = getSelectedGeneros()
@@ -145,10 +151,10 @@ class RegisterViewModel : ViewModel() {
                     nombre = _nombre.value ?: "",
                     apellido = _apellido.value ?: "",
                     username = _username.value ?: "",
+                    contraseña = _contraseña.value ?: "",
+                    confirmcontraseña = _confirmcontraseña.value ?: "",
                     email = _email.value ?: "",
-                    password = _password.value ?: "",
-                    confirmPassword = _confirmPassword.value ?: "",
-                    deviceToken = deviceToken,
+                    token_dispositivo = token_dispositivo,
                     generosMusicales = generosIds
                 )
 
@@ -165,11 +171,15 @@ class RegisterViewModel : ViewModel() {
         }
     }
 
-    private fun getDeviceToken(): String {
-        // Aquí iría la lógica para obtener el token del dispositivo para notificaciones push
-        // Por ejemplo, usando Firebase Messaging o servicios similares
-        // Para simplificar, retornamos un valor dummy
-        return "device_token_dummy"
+    private fun getDeviceToken() {
+        FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
+            if (task.isSuccessful) {
+                _token_dispositivo.value = task.result
+                Log.d("Token", "Token: ${task.result}")
+            } else {
+                Log.e("Token", "Error al obtener el token: ${task.exception}")
+            }
+        }
     }
 
     fun clearError() {

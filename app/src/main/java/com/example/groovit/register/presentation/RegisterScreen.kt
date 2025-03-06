@@ -78,8 +78,8 @@ fun RegisterScreen(
     val apellido by registerViewModel.apellido.observeAsState("")
     val username by registerViewModel.username.observeAsState("")
     val email by registerViewModel.email.observeAsState("")
-    val password by registerViewModel.password.observeAsState("")
-    val confirmPassword by registerViewModel.confirmPassword.observeAsState("")
+    val contraseña by registerViewModel.contraseña.observeAsState("")
+    val confirmcontraseña by registerViewModel.confirmcontraseña.observeAsState("")
     val isLoading by registerViewModel.isLoading.observeAsState(false)
     val errorMessage by registerViewModel.errorMessage.observeAsState(null)
     val isRegistered by registerViewModel.isRegistered.observeAsState(false)
@@ -268,7 +268,7 @@ fun RegisterScreen(
 
                 // Password
                 OutlinedTextField(
-                    value = password,
+                    value = contraseña,
                     onValueChange = { registerViewModel.onPasswordChanged(it) },
                     modifier = Modifier
                         .fillMaxWidth()
@@ -311,7 +311,7 @@ fun RegisterScreen(
 
                 // Confirm Password
                 OutlinedTextField(
-                    value = confirmPassword,
+                    value = confirmcontraseña,
                     onValueChange = { registerViewModel.onConfirmPasswordChanged(it) },
                     modifier = Modifier
                         .fillMaxWidth()

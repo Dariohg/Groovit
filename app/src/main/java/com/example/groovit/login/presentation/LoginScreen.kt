@@ -35,7 +35,7 @@ fun LoginScreen(
     navigateToRegister: () -> Unit
 ) {
     val username by loginViewModel.username.observeAsState("")
-    val password by loginViewModel.password.observeAsState("")
+    val contraseña by loginViewModel.contraseña.observeAsState("")
     val isLoading by loginViewModel.isLoading.observeAsState(false)
     val errorMessage by loginViewModel.errorMessage.observeAsState(null)
     val isLoggedIn by loginViewModel.isLoggedIn.observeAsState(false)
@@ -103,7 +103,7 @@ fun LoginScreen(
 
             // Password Field
             OutlinedTextField(
-                value = password,
+                value = contraseña,
                 onValueChange = { loginViewModel.onPasswordChanged(it) },
                 modifier = Modifier
                     .fillMaxWidth()

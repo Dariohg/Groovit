@@ -12,11 +12,12 @@ class RegisterUseCase {
         nombre: String,
         apellido: String,
         username: String,
+        contraseña: String,
+        confirmcontraseña: String,
         email: String,
-        password: String,
-        confirmPassword: String,
-        deviceToken: String,
-        generosMusicales: List<String> // Añadido este parámetro
+        token_dispositivo: String,
+        generosMusicales: List<String>,
+       // generosMusicales: List<String> // Añadido este parámetro
     ): Result<RegisterResponse> {
         // Validaciones
         if (nombre.isBlank()) {
@@ -35,11 +36,11 @@ class RegisterUseCase {
             return Result.failure(Exception("El correo electrónico no es válido"))
         }
 
-        if (password.length < 6) {
+        if (contraseña.length < 6) {
             return Result.failure(Exception("La contraseña debe tener al menos 6 caracteres"))
         }
 
-        if (password != confirmPassword) {
+        if (contraseña != confirmcontraseña) {
             return Result.failure(Exception("Las contraseñas no coinciden"))
         }
 
@@ -48,9 +49,9 @@ class RegisterUseCase {
             apellido = apellido,
             username = username,
             email = email,
-            password = password,
-            deviceToken = deviceToken,
-            generosMusicales = generosMusicales // Incluido en la request
+            contraseña = contraseña,
+            token_dispositivo = token_dispositivo,
+            //generosMusicales = generosMusicales // Incluido en la request
         )
 
         return repository.register(request)
