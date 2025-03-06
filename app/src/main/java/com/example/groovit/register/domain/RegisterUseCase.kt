@@ -51,7 +51,7 @@ class RegisterUseCase {
             email = email,
             contraseña = contraseña,
             token_dispositivo = token_dispositivo,
-            //generosMusicales = generosMusicales // Incluido en la request
+            generosMusicales = generosMusicales // Incluido en la request
         )
 
         return repository.register(request)

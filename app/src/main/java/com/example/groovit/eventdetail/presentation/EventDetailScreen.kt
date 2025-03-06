@@ -55,6 +55,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.painter.ColorPainter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -77,7 +78,7 @@ fun EventDetailScreen(
     navigateBack: () -> Unit,
     navigateToHome: () -> Unit
 ) {
-    val event by eventDetailViewModel.event.observeAsState()
+    val event by eventDetailViewModel.event.observeAsState(initial = null)
     val isLoading by eventDetailViewModel.isLoading.observeAsState(false)
     val error by eventDetailViewModel.error.observeAsState(null)
     // Cambiado de 1 a 0 para que inicie en cero
@@ -179,17 +180,16 @@ fun EventDetailScreen(
                         .fillMaxSize()
                         .verticalScroll(rememberScrollState())
                 ) {
-                    // El resto del contenido se mantiene igual
-                    // ...
 
-                    // Imagen del evento
                     AsyncImage(
-                        model = event?.imagenUrl,
+                        model = event?.imagen,
                         contentDescription = event?.titulo,
                         contentScale = ContentScale.Crop,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(220.dp)
+                            .height(220.dp),
+                        error = ColorPainter(Color(0xFF2A2A2A)),
+                        placeholder = ColorPainter(Color(0xFF2A2A2A))
                     )
 
                     // Información del evento
@@ -249,7 +249,7 @@ fun EventDetailScreen(
                                             color = Color.Gray
                                         )
                                         Text(
-                                            text = SimpleDateFormat("dd MMMM yyyy, HH:mm", Locale.getDefault()).format(event?.fecha),
+                                            text = SimpleDateFormat("dd MMMM yyyy", Locale.getDefault()).format(event?.getFechaAsDate()),
                                             style = MaterialTheme.typography.bodyLarge,
                                             color = TextWhite
                                         )
@@ -342,7 +342,7 @@ fun EventDetailScreen(
                                             color = Color.Gray
                                         )
                                         Text(
-                                            text = "${event?.lugaresDisponibles} lugares disponibles de ${event?.capacidadTotal}",
+                                            text = "${event?.lugares_disponibles} lugares disponibles de ${event?.capacidad}",
                                             style = MaterialTheme.typography.bodyLarge,
                                             color = TextWhite
                                         )
@@ -462,8 +462,7 @@ fun EventDetailScreen(
                                         .fillMaxWidth()
                                         .height(56.dp),
                                     // Modificado para deshabilitar cuando ticketCount es 0
-                                    enabled = !isLoading && ticketCount > 0 && (event?.lugaresDisponibles ?: 0) >= ticketCount,
-                                    colors = ButtonDefaults.buttonColors(
+                                    enabled = !isLoading && ticketCount > 0 && (event?.lugares_disponibles ?: 0) >= ticketCount,                                    colors = ButtonDefaults.buttonColors(
                                         containerColor = Color.Transparent,
                                         disabledContainerColor = Color.Gray.copy(alpha = 0.5f)
                                     ),

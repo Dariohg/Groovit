@@ -11,8 +11,8 @@ import kotlinx.coroutines.launch
 class EventDetailViewModel : ViewModel() {
     private val repository = EventRepository()
 
-    private val _event = MutableLiveData<EventModel>()
-    val event: LiveData<EventModel> = _event
+    private val _event = MutableLiveData<EventModel?>()
+    val event: LiveData<EventModel?> = _event
 
     private val _isLoading = MutableLiveData<Boolean>(false)
     val isLoading: LiveData<Boolean> = _isLoading
@@ -35,7 +35,6 @@ class EventDetailViewModel : ViewModel() {
 
     private var _currentTicketCount = 0
 
-
     fun loadEvent(eventId: String) {
         viewModelScope.launch {
             _isLoading.value = true
@@ -44,24 +43,34 @@ class EventDetailViewModel : ViewModel() {
             try {
                 println("Intentando cargar evento con ID: $eventId")
 
+                val id = eventId.toIntOrNull()
+                if (id == null) {
+                    println("Error: ID no válido ($eventId)")
+                    _error.value = "ID de evento inválido"
+                    return@launch
+                }
+
+                println("Obteniendo lista de eventos...")
                 val eventList = repository.getEvents()
                 println("Eventos recuperados: ${eventList.size}")
 
-                val selectedEvent = eventList.find { it.id == eventId }
+                val selectedEvent = eventList.find { it.id == id }
 
                 if (selectedEvent != null) {
                     println("Evento encontrado: ${selectedEvent.titulo}")
-                    _event.value = selectedEvent!!
+                    println("Datos completos del evento: $selectedEvent")
+                    _event.postValue(selectedEvent)
                     _currentTicketCount = 0
-                    _ticketCount.value = 0
-                    _totalPrice.value = 0.0
-                    println("Contador reiniciado a 0")
+                    _ticketCount.postValue(0)
+                    _totalPrice.postValue(0.0)
+                    println("Evento asignado a LiveData, verificar en UI")
                 } else {
                     println("No se encontró el evento con ID: $eventId")
                     _error.value = "No se encontró el evento"
                 }
             } catch (e: Exception) {
                 println("Error al cargar evento: ${e.message}")
+                e.printStackTrace()
                 _error.value = "Error al cargar el evento: ${e.message}"
             } finally {
                 _isLoading.value = false
@@ -74,7 +83,7 @@ class EventDetailViewModel : ViewModel() {
 
         println("Intentando incrementar desde: $_currentTicketCount")
 
-        if (currentEvent != null && _currentTicketCount < currentEvent.lugaresDisponibles) {
+        if (currentEvent != null && _currentTicketCount < currentEvent.lugares_disponibles) {
             _currentTicketCount++
             _ticketCount.postValue(_currentTicketCount) // Usar postValue para asegurar actualización
             println("Incrementado a: $_currentTicketCount")

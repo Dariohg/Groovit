@@ -6,7 +6,7 @@ import com.example.groovit.home.data.repository.EventRepository
 class GetEventsUseCase {
     private val repository = EventRepository()
 
-    operator fun invoke(): List<EventModel> {
+    suspend operator fun invoke(): List<EventModel> {
         return repository.getEvents()
     }
 }

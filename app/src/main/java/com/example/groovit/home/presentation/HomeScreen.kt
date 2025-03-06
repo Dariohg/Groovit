@@ -1,5 +1,6 @@
 package com.example.groovit.home.presentation
 
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -24,7 +25,6 @@ import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -39,6 +39,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.painter.ColorPainter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -109,7 +110,7 @@ fun HomeScreen(
                     items(events) { event ->
                         EventCard(
                             event = event,
-                            onEventClick = { navigateToEventDetail(event.id) }
+                            onEventClick = { navigateToEventDetail(event.id.toString()) }
                         )
                     }
 
@@ -128,7 +129,8 @@ fun EventCard(
     event: EventModel,
     onEventClick: () -> Unit
 ) {
-    val dateFormat = SimpleDateFormat("dd MMM yyyy, HH:mm", Locale.getDefault())
+    val dateFormat = SimpleDateFormat("dd MMM yyyy", Locale.getDefault())
+    val eventDate = event.getFechaAsDate()
 
     Card(
         modifier = Modifier
@@ -146,15 +148,23 @@ fun EventCard(
             modifier = Modifier
                 .fillMaxWidth()
         ) {
-            // Imagen del evento
             AsyncImage(
-                model = event.imagenUrl,
+                model = event.imagen,
                 contentDescription = event.titulo,
                 contentScale = ContentScale.Crop,
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(180.dp)
-                    .clip(RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp))
+                    .clip(RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)),
+                error = ColorPainter(Color(0xFF2A2A2A)),
+                placeholder = ColorPainter(Color(0xFF2A2A2A)),
+                onLoading = {
+                    Log.d("ImageLoading", "Cargando imagen: ${event.imagen}")
+                },
+                onError = {
+                    // Versión corregida sin acceder a 'throwable'
+                    Log.e("ImageLoading", "Error al cargar imagen: ${event.imagen}")
+                }
             )
 
             // Contenido del evento
@@ -196,7 +206,7 @@ fun EventCard(
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        text = dateFormat.format(event.fecha),
+                        text = dateFormat.format(eventDate),
                         style = MaterialTheme.typography.bodyMedium,
                         color = TextWhite
                     )
@@ -256,7 +266,7 @@ fun EventCard(
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        text = "${event.lugaresDisponibles} lugares disponibles de ${event.capacidadTotal}",
+                        text = "${event.lugares_disponibles} lugares disponibles de ${event.capacidad}",
                         style = MaterialTheme.typography.bodyMedium,
                         color = TextWhite
                     )

@@ -10,14 +10,21 @@ class LoginRepository {
     suspend fun login(username: String, contraseña: String): Result<LoginResponse> {
         return try {
             val request = LoginRequest(username, contraseña)
+            println("LOGIN REQUEST: $request")
+
             val response = loginService.login(request)
 
             if (response.isSuccessful) {
+                println("LOGIN SUCCESS: ${response.body()}")
                 Result.success(response.body()!!)
             } else {
-                Result.failure(Exception("Error: ${response.code()} - ${response.message()}"))
+                val errorBody = response.errorBody()?.string()
+                println("LOGIN ERROR: Code ${response.code()}, Error: $errorBody")
+                Result.failure(Exception("Error: ${response.code()} - $errorBody"))
             }
         } catch (e: Exception) {
+            println("LOGIN EXCEPTION: ${e.message}")
+            e.printStackTrace()
             Result.failure(e)
         }
     }

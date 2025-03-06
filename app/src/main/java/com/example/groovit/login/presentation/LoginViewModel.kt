@@ -4,6 +4,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.groovit.core.auth.AuthManager
 import com.example.groovit.login.domain.LoginUseCase
 import kotlinx.coroutines.launch
 
@@ -47,7 +48,8 @@ class LoginViewModel : ViewModel() {
 
             result.fold(
                 onSuccess = {
-                    // Aquí guardarías el token en preferencias o datastore
+                    // Guarda el token en AuthManager
+                    AuthManager.setToken(it.token)
                     _isLoggedIn.value = true
                 },
                 onFailure = {
@@ -56,7 +58,6 @@ class LoginViewModel : ViewModel() {
             )
         }
     }
-
     fun clearError() {
         _errorMessage.value = null
     }
