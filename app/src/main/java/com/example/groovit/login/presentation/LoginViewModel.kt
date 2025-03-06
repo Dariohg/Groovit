@@ -50,6 +50,7 @@ class LoginViewModel : ViewModel() {
                 onSuccess = {
                     // Guarda el token en AuthManager
                     AuthManager.setToken(it.token)
+                    AuthManager.setUserId(it.id.toIntOrNull() ?: 0) // Asumiendo que el ID viene como String
                     _isLoggedIn.value = true
                 },
                 onFailure = {

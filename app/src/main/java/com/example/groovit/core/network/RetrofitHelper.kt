@@ -1,10 +1,12 @@
 package com.example.groovit.core.network
 
 import com.example.groovit.core.auth.AuthManager
+import com.example.groovit.eventdetail.data.datasource.EventDetailService
+import com.example.groovit.eventdetail.data.datasource.ReservationService
+import com.example.groovit.home.data.datasource.EventService
 import com.example.groovit.login.data.datasource.LoginService
 import com.example.groovit.register.data.datasource.GeneroService
 import com.example.groovit.register.data.datasource.RegisterService
-import com.example.groovit.home.data.datasource.EventService
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
 import okhttp3.Response
@@ -20,7 +22,7 @@ object RetrofitHelper {
 
         val request = if (!token.isNullOrEmpty()) {
             original.newBuilder()
-                .header("Authorization", token) // Sin el prefijo "Bearer"
+                .header("Authorization", token)
                 .method(original.method, original.body)
                 .build()
         } else {
@@ -35,10 +37,10 @@ object RetrofitHelper {
         .addInterceptor(authInterceptor)
         .build()
 
-    private val retrofit: Retrofit by lazy {
+    val retrofit: Retrofit by lazy {
         Retrofit.Builder()
             .baseUrl(BASE_URL)
-            .client(client) // Usa el cliente personalizado
+            .client(client)
             .addConverterFactory(GsonConverterFactory.create())
             .build()
     }
@@ -57,5 +59,13 @@ object RetrofitHelper {
 
     val eventService: EventService by lazy {
         retrofit.create(EventService::class.java)
+    }
+
+    val eventDetailService: EventDetailService by lazy {
+        retrofit.create(EventDetailService::class.java)
+    }
+
+    val reservationService: ReservationService by lazy {
+        retrofit.create(ReservationService::class.java)
     }
 }

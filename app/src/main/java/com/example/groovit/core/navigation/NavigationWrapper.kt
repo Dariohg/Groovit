@@ -3,6 +3,7 @@ package com.example.groovit.core.navigation
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -55,13 +56,14 @@ fun NavigationWrapper() {
             route = "${Screens.EVENT_DETAIL}/{eventId}",
             arguments = listOf(navArgument("eventId") { type = NavType.StringType })
         ) { backStackEntry ->
-            val eventId = backStackEntry.arguments?.getString("eventId") ?: "1" // Valor por defecto "1"
+            val eventId = backStackEntry.arguments?.getString("eventId") ?: "1"
 
-            // Crear un ViewModel con una implementación más simple para pruebas
-            val viewModel = EventDetailViewModel()
+            // Usar remember para mantener una sola instancia del ViewModel
+            val viewModel = remember { EventDetailViewModel() }
 
-            // Cargar manualmente el evento para probar
-            LaunchedEffect(eventId) {
+            // Usar key con eventId para que solo se ejecute cuando cambie el ID
+            LaunchedEffect(key1 = eventId) {
+                println("NavigationWrapper: Cargando evento $eventId")
                 viewModel.loadEvent(eventId)
             }
 

@@ -160,6 +160,8 @@ class RegisterViewModel : ViewModel() {
 
                 if (result.isSuccess) {
                     _isRegistered.value = true
+
+                    suscribeAEventos()
                 } else {
                     _errorMessage.value = result.exceptionOrNull()?.message ?: "Error desconocido"
                 }
@@ -184,5 +186,16 @@ class RegisterViewModel : ViewModel() {
 
     fun clearError() {
         _errorMessage.value = null
+    }
+
+    private fun suscribeAEventos() {
+        FirebaseMessaging.getInstance().subscribeToTopic("eventos")
+            .addOnCompleteListener { task ->
+                if (task.isSuccessful) {
+                    Log.d("Kottili", "Usuario suscrito exitosamente al topic evento")
+                } else {
+                    Log.e("Kottili", "Error al suscribir usuario al topic evento: ${task.exception}")
+                }
+            }
     }
 }

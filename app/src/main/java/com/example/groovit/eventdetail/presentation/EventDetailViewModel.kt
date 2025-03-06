@@ -4,15 +4,16 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.groovit.home.data.model.EventModel
-import com.example.groovit.home.data.repository.EventRepository
+import com.example.groovit.eventdetail.data.model.EventDetailModel
+import com.example.groovit.eventdetail.domain.GetEventDetailUseCase
+import com.example.groovit.eventdetail.domain.PurchaseTicketsUseCase
 import kotlinx.coroutines.launch
 
 class EventDetailViewModel : ViewModel() {
-    private val repository = EventRepository()
+    private val getEventDetailUseCase = GetEventDetailUseCase()
 
-    private val _event = MutableLiveData<EventModel?>()
-    val event: LiveData<EventModel?> = _event
+    private val _event = MutableLiveData<EventDetailModel?>()
+    val event: LiveData<EventDetailModel?> = _event
 
     private val _isLoading = MutableLiveData<Boolean>(false)
     val isLoading: LiveData<Boolean> = _isLoading
@@ -20,7 +21,6 @@ class EventDetailViewModel : ViewModel() {
     private val _error = MutableLiveData<String?>(null)
     val error: LiveData<String?> = _error
 
-    // Cambiado a 0 como valor inicial
     private val _ticketCount = MutableLiveData<Int>(0)
     val ticketCount: LiveData<Int> = _ticketCount
 
@@ -35,39 +35,26 @@ class EventDetailViewModel : ViewModel() {
 
     private var _currentTicketCount = 0
 
+    private val purchaseTicketsUseCase = PurchaseTicketsUseCase()
+
+
     fun loadEvent(eventId: String) {
         viewModelScope.launch {
             _isLoading.value = true
             _error.value = null
 
             try {
-                println("Intentando cargar evento con ID: $eventId")
+                println("Cargando evento con ID: $eventId")
 
-                val id = eventId.toIntOrNull()
-                if (id == null) {
-                    println("Error: ID no válido ($eventId)")
-                    _error.value = "ID de evento inválido"
-                    return@launch
-                }
+                val eventDetail = getEventDetailUseCase(eventId)
+                println("Evento recibido en ViewModel: $eventDetail")
 
-                println("Obteniendo lista de eventos...")
-                val eventList = repository.getEvents()
-                println("Eventos recuperados: ${eventList.size}")
+                _event.value = eventDetail  // Usar value en vez de postValue para actualización inmediata
+                _currentTicketCount = 0
+                _ticketCount.value = 0
+                _totalPrice.value = 0.0
 
-                val selectedEvent = eventList.find { it.id == id }
-
-                if (selectedEvent != null) {
-                    println("Evento encontrado: ${selectedEvent.titulo}")
-                    println("Datos completos del evento: $selectedEvent")
-                    _event.postValue(selectedEvent)
-                    _currentTicketCount = 0
-                    _ticketCount.postValue(0)
-                    _totalPrice.postValue(0.0)
-                    println("Evento asignado a LiveData, verificar en UI")
-                } else {
-                    println("No se encontró el evento con ID: $eventId")
-                    _error.value = "No se encontró el evento"
-                }
+                println("Evento cargado correctamente: ${eventDetail.titulo}")
             } catch (e: Exception) {
                 println("Error al cargar evento: ${e.message}")
                 e.printStackTrace()
@@ -81,16 +68,16 @@ class EventDetailViewModel : ViewModel() {
     fun incrementTicketCount() {
         val currentEvent = _event.value
 
-        println("Intentando incrementar desde: $_currentTicketCount")
+        println("Intentando incrementar tickets. Evento: $currentEvent, Count: $_currentTicketCount")
 
-        if (currentEvent != null && _currentTicketCount < currentEvent.lugares_disponibles) {
+        if (currentEvent != null && _currentTicketCount < currentEvent.getLugaresDisponibles()) {
             _currentTicketCount++
-            _ticketCount.postValue(_currentTicketCount) // Usar postValue para asegurar actualización
+            _ticketCount.value = _currentTicketCount
             println("Incrementado a: $_currentTicketCount")
 
-            // Actualizar precio directamente
+            // Actualizar precio
             val newPrice = currentEvent.precio * _currentTicketCount
-            _totalPrice.postValue(newPrice)
+            _totalPrice.value = newPrice
             println("Precio actualizado a: $newPrice")
         }
     }
@@ -100,37 +87,33 @@ class EventDetailViewModel : ViewModel() {
 
         if (_currentTicketCount > 0) {
             _currentTicketCount--
-            _ticketCount.postValue(_currentTicketCount) // Usar postValue para asegurar actualización
+            _ticketCount.value = _currentTicketCount
             println("Decrementado a: $_currentTicketCount")
 
-            // Actualizar precio directamente
+            // Actualizar precio
             val currentEvent = _event.value
             if (currentEvent != null) {
                 val newPrice = currentEvent.precio * _currentTicketCount
-                _totalPrice.postValue(newPrice)
+                _totalPrice.value = newPrice
                 println("Precio actualizado a: $newPrice")
             }
-        }
-    }
-
-    private fun updateTotalPrice() {
-        val currentEvent = _event.value
-        val currentCount = _ticketCount.value ?: 0
-
-        if (currentEvent != null) {
-            val newPrice = currentEvent.precio * currentCount
-            println("Actualizando precio: $currentCount tickets * ${currentEvent.precio} = $newPrice")
-            _totalPrice.value = newPrice
         }
     }
 
     fun purchaseTickets() {
         viewModelScope.launch {
             val currentCount = _ticketCount.value ?: 0
+            val currentEvent = _event.value
 
             // Verificar que hay tickets seleccionados
             if (currentCount <= 0) {
                 _error.value = "Debes seleccionar al menos un boleto"
+                return@launch
+            }
+
+            // Verificar que hay un evento cargado
+            if (currentEvent == null) {
+                _error.value = "No se encontró información del evento"
                 return@launch
             }
 
@@ -139,29 +122,27 @@ class EventDetailViewModel : ViewModel() {
             _purchaseMessage.value = null
 
             try {
-                val currentEvent = _event.value
+                // Calcular el precio total
+                val totalPrice = currentEvent.precio * currentCount
 
-                if (currentEvent == null) {
-                    _error.value = "No se encontró información del evento"
-                    return@launch
-                }
-
-                // Simulamos la llamada a la API para comprar entradas
-                kotlinx.coroutines.delay(1500)
-
-                // Simulamos una respuesta exitosa
-                val purchaseData = mapOf(
-                    "eventId" to currentEvent.id,
-                    "ticketCount" to currentCount,
-                    "totalPrice" to (currentEvent.precio * currentCount)
+                // Realizar la compra
+                val result = purchaseTicketsUseCase.invoke(
+                    eventId = currentEvent.id,
+                    quantity = currentCount,
+                    totalPrice = totalPrice
                 )
 
-                // Log de la compra simulada
-                println("Compra simulada: $purchaseData")
-
-                _purchaseSuccess.value = true
-                _purchaseMessage.value = "¡Compra exitosa! Has adquirido $currentCount ${if (currentCount == 1) "entrada" else "entradas"} para ${currentEvent.titulo}."
-
+                result.fold(
+                    onSuccess = { response ->
+                        _purchaseSuccess.value = true
+                        _purchaseMessage.value = response.message ?:
+                                "¡Compra exitosa! Has adquirido $currentCount ${if (currentCount == 1) "entrada" else "entradas"} para ${currentEvent.titulo}."
+                    },
+                    onFailure = { exception ->
+                        _error.value = "Error al procesar la compra: ${exception.message}"
+                        _purchaseSuccess.value = false
+                    }
+                )
             } catch (e: Exception) {
                 _error.value = "Error al procesar la compra: ${e.message}"
                 _purchaseSuccess.value = false

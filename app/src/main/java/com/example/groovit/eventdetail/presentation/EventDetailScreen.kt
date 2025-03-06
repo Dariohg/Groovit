@@ -89,7 +89,8 @@ fun EventDetailScreen(
 
     // Cargar el evento cuando se inicie la pantalla
     LaunchedEffect(eventId) {
-        eventDetailViewModel.loadEvent(eventId)
+        println("EventDetailScreen recibió evento: $event")
+        //eventDetailViewModel.loadEvent(eventId)
     }
     LaunchedEffect(ticketCount, totalPrice) {
         println("UI actualizada - Tickets: $ticketCount, Precio: $totalPrice")
@@ -342,7 +343,8 @@ fun EventDetailScreen(
                                             color = Color.Gray
                                         )
                                         Text(
-                                            text = "${event?.lugares_disponibles} lugares disponibles de ${event?.capacidad}",
+                                            // Usar el método auxiliar para obtener lugares disponibles con valor por defecto
+                                            text = "${event?.getLugaresDisponibles() ?: 0} lugares disponibles de ${event?.capacidad ?: 0}",
                                             style = MaterialTheme.typography.bodyLarge,
                                             color = TextWhite
                                         )
