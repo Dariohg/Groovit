@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "606068225097",
+    "project_id": "firstfirebase-f8428",
+    "storage_bucket": "firstfirebase-f8428.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:606068225097:android:dcd4e4d7980c6709f97b98",
+        "android_client_info": {
+          "package_name": "com.example.groovit"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCo5XorIx7QniPuXGjCbUZ4TonRb04Rdcs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

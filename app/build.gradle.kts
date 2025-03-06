@@ -3,6 +3,8 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.kotlin.serialization) // Agregado para navegación
+
+    id("com.google.gms.google-services")
 }
 
 android {
@@ -60,7 +62,11 @@ dependencies {
     implementation(libs.com.squareup.retrofit2.converter.gson)
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.io.coil.kt.coil.compose)
-
+     // dependecias de firebase
+    implementation(libs.firebase.messaging)
+    implementation(libs.google.firebase.analytics)
+    implementation(platform(libs.firebase.bom.v3280))
+    implementation(libs.firebase.auth)
 
     // Testing
     testImplementation(libs.junit)
