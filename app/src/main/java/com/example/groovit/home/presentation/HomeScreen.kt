@@ -53,6 +53,10 @@ import com.example.groovit.ui.theme.NeonPurpleLight
 import com.example.groovit.ui.theme.TextWhite
 import java.text.SimpleDateFormat
 import java.util.Locale
+//import androidx.compose.runtime.rememberCoroutineScope
+//import com.google.accompanist.swiperefresh.SwipeRefresh
+//import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
+//import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -63,6 +67,9 @@ fun HomeScreen(
     val events by homeViewModel.events.observeAsState(emptyList())
     val isLoading by homeViewModel.isLoading.observeAsState(false)
     val error by homeViewModel.error.observeAsState(null)
+
+    //val swipeRefreshState = rememberSwipeRefreshState(isRefreshing = isLoading)
+    //val coroutineScope = rememberCoroutineScope()
 
     Scaffold(
         topBar = {

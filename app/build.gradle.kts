@@ -67,6 +67,7 @@ dependencies {
     implementation(libs.google.firebase.analytics)
     implementation(platform(libs.firebase.bom.v3280))
     implementation(libs.firebase.auth)
+    //implementation("com.google.accompanist:accompanist-swiperefresh:0.32.0")
 
     // Testing
     testImplementation(libs.junit)
